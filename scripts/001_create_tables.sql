@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS subtasks (
   id TEXT PRIMARY KEY,
   task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
-  completed BOOLEAN DEFAULT FALSE
+  completed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Create custom_fields table
@@ -55,3 +56,7 @@ ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
 ALTER TABLE subtasks DISABLE ROW LEVEL SECURITY;
 ALTER TABLE custom_fields DISABLE ROW LEVEL SECURITY;
 ALTER TABLE automation_rules DISABLE ROW LEVEL SECURITY;
+
+-- Add missing created_at column to subtasks if it doesn't exist
+ALTER TABLE subtasks
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
