@@ -25,6 +25,7 @@ import type {
 } from "@/types/kanban";
 import { generateId } from "@/lib/utils";
 
+
 // Default column colors
 const DEFAULT_COLORS = [
   "bg-blue-50 dark:bg-blue-900/30",
@@ -407,10 +408,10 @@ export default function KanbanBoard() {
   // Loading state
   if (columnsLoading || tasksLoading || rulesLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-gray-950">
+      <div className="flex items-center justify-center h-screen bg-[#fdf4ed] dark:bg-[#3a1808]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <Loader2 className="h-8 w-8 animate-spin text-[#c06228]" />
+          <p className="text-[#7e3914] dark:text-[#f0c49a]">
             Loading your board...
           </p>
         </div>
@@ -436,8 +437,11 @@ export default function KanbanBoard() {
 
         <div className="shrink-0 w-72">
           {isAddingColumn ? (
-            <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm border dark:border-gray-700">
-              <Label htmlFor="column-title" className="dark:text-gray-200">
+            <div className="bg-[#fdf4ed] dark:bg-[#5c280d] p-3 rounded-md shadow-sm border border-[#f0c49a] dark:border-[#7e3914]">
+              <Label
+                htmlFor="column-title"
+                className="text-[#7e3914] dark:text-[#f0c49a]"
+              >
                 Column Title
               </Label>
               <Input
@@ -445,7 +449,7 @@ export default function KanbanBoard() {
                 value={newColumnTitle}
                 onChange={(e) => setNewColumnTitle(e.target.value)}
                 placeholder="Enter column title"
-                className="mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                className="mb-2 bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#5c280d] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") addColumn();
                   if (e.key === "Escape") setIsAddingColumn(false);
@@ -453,14 +457,18 @@ export default function KanbanBoard() {
                 autoFocus
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={addColumn}>
+                <Button
+                  size="sm"
+                  className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+                  onClick={addColumn}
+                >
                   Add
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setIsAddingColumn(false)}
-                  className="dark:border-gray-600 dark:text-gray-200"
+                  className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                 >
                   Cancel
                 </Button>
@@ -469,7 +477,7 @@ export default function KanbanBoard() {
           ) : (
             <Button
               variant="outline"
-              className="border-dashed border-2 w-full h-12 dark:border-gray-700 dark:text-gray-300"
+              className="border-dashed border-2 border-[#e8a06a] w-full h-12 text-[#a04d1e] dark:border-[#7e3914] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#5c280d]"
               onClick={() => setIsAddingColumn(true)}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Column
@@ -494,31 +502,46 @@ export default function KanbanBoard() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 dark:bg-gray-950">
-      <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Kanban Board
-          </h1>
-          <ThemeToggle />
+    <div className="flex flex-col h-screen bg-[#fdf4ed] dark:bg-[#3a1808]">
+      <header className="bg-[#7e3914] dark:bg-[#5c280d] border-b border-[#a04d1e] dark:border-[#3a1808] p-5 px-4 xl:px-12 shadow-sm">
+        <div className="flex justify-between items-center">
+          <div className="flex flex-row gap-4 items-center">
+            <img src='/logo.png' alt="Logo" style={{ width: "40px", height: "auto" }}/>
+            <h1 className="text-2xl font-bold text-[#fdf4ed]">Kanban Board</h1>
+          </div>
+          
+          <div className="flex flex-row gap-6 items-center">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full max-w-md grid-cols-2 bg-[#5c280d] dark:bg-[#3a1808]">
+                <TabsTrigger
+                  value="board"
+                  className="text-[#f0c49a] data-[state=active]:bg-[#c06228] data-[state=active]:text-[#fdf4ed] data-[state=inactive]:hover:bg-[#7e3914] data-[state=inactive]:hover:text-[#fdf4ed]"
+                >
+                  Board
+                </TabsTrigger>
+                <TabsTrigger
+                  value="automation"
+                  className="text-[#f0c49a] data-[state=active]:bg-[#c06228] data-[state=active]:text-[#fdf4ed] data-[state=inactive]:hover:bg-[#7e3914] data-[state=inactive]:hover:text-[#fdf4ed]"
+                >
+                  Automation
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <ThemeToggle />
+            
+          </div>
         </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="board">Board</TabsTrigger>
-            <TabsTrigger value="automation">Automation</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="board" className="mt-4">
-            {renderBoardContent()}
-          </TabsContent>
-
-          <TabsContent value="automation" className="mt-4">
-            {renderAutomationContent()}
-          </TabsContent>
-        </Tabs>
       </header>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="py-3 flex items-center justify-center">
+        <TabsContent value="board" className="mt-4">
+          {renderBoardContent()}
+        </TabsContent>
+
+        <TabsContent value="automation" className="mt-4">
+          {renderAutomationContent()}
+        </TabsContent>
+      </Tabs>
       {selectedTask && (
         <TaskDetailSidebar
           task={selectedTask}

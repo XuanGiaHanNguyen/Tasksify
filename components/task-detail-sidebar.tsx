@@ -157,10 +157,15 @@ export default function TaskDetailSidebar({
   }
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white dark:bg-gray-800 shadow-lg border-l dark:border-gray-700 z-50 flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-        <h2 className="text-lg font-semibold dark:text-gray-200">Task Details</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-[#fdf4ed] dark:bg-[#5c280d] shadow-lg border-l border-[#f0c49a] dark:border-[#7e3914] z-50 flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b border-[#f0c49a] dark:border-[#7e3914]">
+        <h2 className="text-lg font-semibold text-[#5c280d] dark:text-[#fdf4ed]">Task Details</h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="text-[#a04d1e] hover:bg-[#f9e3ce] dark:text-[#e8a06a] dark:hover:bg-[#7e3914]"
+        >
           <X className="h-5 w-5" />
         </Button>
       </div>
@@ -174,7 +179,7 @@ export default function TaskDetailSidebar({
                 <Input
                   value={editedTask.title}
                   onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
-                  className="text-lg font-medium dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="text-lg font-medium bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleTitleSave()
                     if (e.key === "Escape") setIsEditingTitle(false)
@@ -182,14 +187,18 @@ export default function TaskDetailSidebar({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleTitleSave}>
+                  <Button
+                    size="sm"
+                    className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+                    onClick={handleTitleSave}
+                  >
                     Save
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsEditingTitle(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
+                    className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                   >
                     Cancel
                   </Button>
@@ -197,8 +206,13 @@ export default function TaskDetailSidebar({
               </div>
             ) : (
               <div className="flex justify-between items-start">
-                <h3 className="text-lg font-medium dark:text-gray-200">{editedTask.title}</h3>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditingTitle(true)}>
+                <h3 className="text-lg font-medium text-[#3a1808] dark:text-[#fdf4ed]">{editedTask.title}</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsEditingTitle(true)}
+                  className="text-[#a04d1e] hover:bg-[#f9e3ce] dark:text-[#e8a06a] dark:hover:bg-[#7e3914]"
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
@@ -207,14 +221,18 @@ export default function TaskDetailSidebar({
 
           {/* Column (Status) */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Column</label>
+            <label className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a] block mb-1">Column</label>
             <Select value={editedTask.columnId} onValueChange={handleColumnChange}>
-              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+              <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                 <SelectValue placeholder="Select column" />
               </SelectTrigger>
-              <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+              <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
                 {columns.map((column) => (
-                  <SelectItem key={column.id} value={column.id}>
+                  <SelectItem
+                    key={column.id}
+                    value={column.id}
+                    className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]"
+                  >
                     {column.title}
                   </SelectItem>
                 ))}
@@ -224,40 +242,40 @@ export default function TaskDetailSidebar({
 
           {/* Priority */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Priority</label>
+            <label className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a] block mb-1">Priority</label>
             <Select value={editedTask.priority} onValueChange={handlePriorityChange}>
-              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+              <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
+              <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
+                <SelectItem value="low" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Low</SelectItem>
+                <SelectItem value="medium" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Medium</SelectItem>
+                <SelectItem value="high" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">High</SelectItem>
+                <SelectItem value="urgent" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Urgent</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Due Date */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Due Date</label>
+            <label className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a] block mb-1">Due Date</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-left font-normal dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="w-full justify-start text-left font-normal bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] hover:bg-[#f9e3ce] dark:hover:bg-[#5c280d]"
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {editedTask.dueDate ? formatDate(editedTask.dueDate) : <span>Pick a date</span>}
+                  <Calendar className="mr-2 h-4 w-4 text-[#a04d1e] dark:text-[#e8a06a]" />
+                  {editedTask.dueDate ? formatDate(editedTask.dueDate) : <span className="text-[#a04d1e] dark:text-[#e8a06a]">Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 dark:bg-gray-800 dark:border-gray-700" align="start">
+              <PopoverContent className="w-auto p-0 bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]" align="start">
                 <CalendarComponent
                   mode="single"
                   selected={editedTask.dueDate ? new Date(editedTask.dueDate) : undefined}
                   onSelect={handleDueDateChange}
                   initialFocus
-                  className="dark:bg-gray-800"
+                  className="dark:bg-[#5c280d]"
                 />
               </PopoverContent>
             </Popover>
@@ -266,8 +284,13 @@ export default function TaskDetailSidebar({
           {/* Labels */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</label>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingLabel(true)}>
+              <label className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a]">Labels</label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAddingLabel(true)}
+                className="text-[#a04d1e] hover:bg-[#f9e3ce] dark:text-[#e8a06a] dark:hover:bg-[#7e3914]"
+              >
                 <Plus className="h-3 w-3 mr-1" /> Add
               </Button>
             </div>
@@ -278,7 +301,7 @@ export default function TaskDetailSidebar({
                   value={newLabel}
                   onChange={(e) => setNewLabel(e.target.value)}
                   placeholder="Label name"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") addLabel()
                     if (e.key === "Escape") setIsAddingLabel(false)
@@ -286,14 +309,18 @@ export default function TaskDetailSidebar({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={addLabel}>
+                  <Button
+                    size="sm"
+                    className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+                    onClick={addLabel}
+                  >
                     Add
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsAddingLabel(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
+                    className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                   >
                     Cancel
                   </Button>
@@ -303,13 +330,13 @@ export default function TaskDetailSidebar({
 
             <div className="flex flex-wrap gap-2">
               {editedTask.labels.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No labels yet.</p>
+                <p className="text-sm text-[#a04d1e] dark:text-[#e8a06a]">No labels yet.</p>
               ) : (
                 editedTask.labels.map((label) => (
                   <Badge
                     key={label}
                     variant="secondary"
-                    className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30"
+                    className="cursor-pointer bg-[#f9e3ce] text-[#7e3914] hover:bg-red-100 dark:bg-[#7e3914] dark:text-[#f0c49a] dark:hover:bg-red-900/30 border border-[#e8a06a] dark:border-[#a04d1e]"
                     onClick={() => removeLabel(label)}
                   >
                     <Tag className="h-3 w-3 mr-1" />
@@ -324,9 +351,14 @@ export default function TaskDetailSidebar({
           {/* Description */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+              <label className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a]">Description</label>
               {!isEditingDescription && (
-                <Button variant="ghost" size="sm" onClick={() => setIsEditingDescription(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditingDescription(true)}
+                  className="text-[#a04d1e] hover:bg-[#f9e3ce] dark:text-[#e8a06a] dark:hover:bg-[#7e3914]"
+                >
                   <Edit className="h-3 w-3 mr-1" /> Edit
                 </Button>
               )}
@@ -339,36 +371,45 @@ export default function TaskDetailSidebar({
                   onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
                   placeholder="Add a description..."
                   rows={4}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleDescriptionSave}>
+                  <Button
+                    size="sm"
+                    className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+                    onClick={handleDescriptionSave}
+                  >
                     Save
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsEditingDescription(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
+                    className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                   >
                     Cancel
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-md min-h-[60px]">
-                {editedTask.description || "No description provided."}
+              <div className="text-sm text-[#5c280d] dark:text-[#f0c49a] bg-[#f9e3ce] dark:bg-[#7e3914] p-3 rounded-md min-h-[60px]">
+                {editedTask.description || <span className="text-[#a04d1e] dark:text-[#e8a06a]">No description provided.</span>}
               </div>
             )}
           </div>
 
-          <Separator className="dark:bg-gray-700" />
+          <Separator className="bg-[#f0c49a] dark:bg-[#7e3914]" />
 
           {/* Subtasks */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Subtasks</h4>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingSubtask(true)}>
+              <h4 className="text-sm font-medium text-[#7e3914] dark:text-[#e8a06a]">Subtasks</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAddingSubtask(true)}
+                className="text-[#a04d1e] hover:bg-[#f9e3ce] dark:text-[#e8a06a] dark:hover:bg-[#7e3914]"
+              >
                 <Plus className="h-3 w-3 mr-1" /> Add
               </Button>
             </div>
@@ -379,7 +420,7 @@ export default function TaskDetailSidebar({
                   value={newSubtaskTitle}
                   onChange={(e) => setNewSubtaskTitle(e.target.value)}
                   placeholder="Subtask title"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") addSubtask()
                     if (e.key === "Escape") setIsAddingSubtask(false)
@@ -387,14 +428,18 @@ export default function TaskDetailSidebar({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={addSubtask}>
+                  <Button
+                    size="sm"
+                    className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+                    onClick={addSubtask}
+                  >
                     Add
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsAddingSubtask(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
+                    className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                   >
                     Cancel
                   </Button>
@@ -404,28 +449,28 @@ export default function TaskDetailSidebar({
 
             <div className="space-y-2">
               {editedTask.subtasks.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No subtasks yet.</p>
+                <p className="text-sm text-[#a04d1e] dark:text-[#e8a06a]">No subtasks yet.</p>
               ) : (
                 editedTask.subtasks.map((subtask) => (
                   <div
                     key={subtask.id}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded-md"
+                    className="flex items-center justify-between bg-[#f9e3ce] dark:bg-[#7e3914] p-2 rounded-md border border-[#f0c49a] dark:border-[#a04d1e]"
                   >
                     <div className="flex items-center">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 mr-2"
+                        className="h-6 w-6 mr-2 text-[#a04d1e] hover:bg-[#f0c49a] dark:text-[#e8a06a] dark:hover:bg-[#5c280d]"
                         onClick={() => toggleSubtask(subtask.id)}
                       >
                         {subtask.completed ? (
-                          <CheckSquare className="h-4 w-4 text-blue-500" />
+                          <CheckSquare className="h-4 w-4 text-[#c06228]" />
                         ) : (
                           <Square className="h-4 w-4" />
                         )}
                       </Button>
                       <span
-                        className={`text-sm ${subtask.completed ? "line-through text-gray-500 dark:text-gray-400" : "dark:text-gray-200"}`}
+                        className={`text-sm ${subtask.completed ? "line-through text-[#a04d1e] dark:text-[#e8a06a]" : "text-[#3a1808] dark:text-[#fdf4ed]"}`}
                       >
                         {subtask.title}
                       </span>
@@ -433,7 +478,7 @@ export default function TaskDetailSidebar({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                      className="h-6 w-6 text-[#a04d1e] dark:text-[#e8a06a] hover:text-red-600 dark:hover:text-red-400 hover:bg-[#f0c49a] dark:hover:bg-[#5c280d]"
                       onClick={() => deleteSubtask(subtask.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -446,10 +491,10 @@ export default function TaskDetailSidebar({
         </div>
       </div>
 
-      <div className="p-4 border-t dark:border-gray-700 flex gap-2">
+      <div className="p-4 border-t border-[#f0c49a] dark:border-[#7e3914] flex gap-2">
         <Button
           variant="outline"
-          className="flex-1 dark:border-gray-600 dark:text-gray-200"
+          className="flex-1 border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
           onClick={handleDuplicateTask}
         >
           <Copy className="h-4 w-4 mr-2" /> Duplicate
@@ -457,22 +502,27 @@ export default function TaskDetailSidebar({
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="flex-1">
+            <Button variant="destructive" className="flex-1 bg-red-700 hover:bg-red-800 text-white">
               <Trash2 className="h-4 w-4 mr-2" /> Delete Task
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="dark:bg-gray-800 dark:border-gray-700">
+          <AlertDialogContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
             <AlertDialogHeader>
-              <AlertDialogTitle className="dark:text-gray-200">Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription className="dark:text-gray-400">
+              <AlertDialogTitle className="text-[#3a1808] dark:text-[#fdf4ed]">Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-[#7e3914] dark:text-[#e8a06a]">
                 This action cannot be undone. This will permanently delete the task and all its subtasks.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+              <AlertDialogCancel className="bg-[#f9e3ce] border-[#e8a06a] text-[#7e3914] hover:bg-[#f0c49a] dark:bg-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a]">
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteTask}>Delete</AlertDialogAction>
+              <AlertDialogAction
+                onClick={handleDeleteTask}
+                className="bg-red-700 hover:bg-red-800 text-white"
+              >
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

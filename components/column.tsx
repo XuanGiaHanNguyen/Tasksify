@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { MoreHorizontal, Plus, Trash2, Palette } from "lucide-react";
+import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import TaskCard from "./task-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,61 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import type { Task, Column as ColumnType } from "@/types/kanban";
-
-// Add predefined colors with dark mode variants
-const COLUMN_COLORS = [
-  {
-    name: "Default",
-    value: "bg-white dark:bg-gray-800",
-    container: "bg-gray-50 dark:bg-gray-900",
-  },
-  {
-    name: "Blue",
-    value: "bg-blue-50 dark:bg-blue-900/30",
-    container: "bg-blue-50/50 dark:bg-blue-900/10",
-  },
-  {
-    name: "Green",
-    value: "bg-green-50 dark:bg-green-900/30",
-    container: "bg-green-50/50 dark:bg-green-900/10",
-  },
-  {
-    name: "Yellow",
-    value: "bg-yellow-50 dark:bg-yellow-900/30",
-    container: "bg-yellow-50/50 dark:bg-yellow-900/10",
-  },
-  {
-    name: "Red",
-    value: "bg-red-50 dark:bg-red-900/30",
-    container: "bg-red-50/50 dark:bg-red-900/10",
-  },
-  {
-    name: "Purple",
-    value: "bg-purple-50 dark:bg-purple-900/30",
-    container: "bg-purple-50/50 dark:bg-purple-900/10",
-  },
-  {
-    name: "Pink",
-    value: "bg-pink-50 dark:bg-pink-900/30",
-    container: "bg-pink-50/50 dark:bg-pink-900/10",
-  },
-  {
-    name: "Orange",
-    value: "bg-orange-50 dark:bg-orange-900/30",
-    container: "bg-orange-50/50 dark:bg-orange-900/10",
-  },
-  {
-    name: "Cyan",
-    value: "bg-cyan-50 dark:bg-cyan-900/30",
-    container: "bg-cyan-50/50 dark:bg-cyan-900/10",
-  },
-];
 
 interface ColumnWithTasks extends ColumnType {
   tasks: Task[];
@@ -97,7 +43,6 @@ export default function Column({
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
-
     onAddTask(column.id, {
       title: newTaskTitle,
       description: newTaskDescription || undefined,
@@ -111,87 +56,63 @@ export default function Column({
     setIsAddingTask(false);
   };
 
-  const handleColorChange = (color: string) => {
-    onUpdateColumn(column.id, { color });
-  };
-
-  // Get header color class or default to white/dark gray
-  const headerColorClass = column.color || "bg-white dark:bg-gray-800";
-  const selectedColor = COLUMN_COLORS.find((c) => c.value === column.color);
-  const containerColorClass =
-    selectedColor?.container || "bg-gray-50 dark:bg-gray-900";
-
   return (
-    <div
-      className={`shrink-0 w-72 flex flex-col rounded-md shadow-sm ${containerColorClass}`}
-    >
-      <div
-        className={`p-3 flex justify-between items-center border-b rounded-t-md ${headerColorClass}`}
-      >
-        <h3 className="font-medium text-sm text-gray-700 dark:text-gray-200 flex items-center">
-          {column.title}
-          <span className="ml-2 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">
+    <div className="shrink-0 w-72 flex flex-col rounded-xl border border-[#e8c9a8] dark:border-[#7e3914]/50 bg-[#fdf4ed] dark:bg-[#2e1206] shadow-sm">
+      {/* Header */}
+      <div className="px-4 py-3 flex items-center justify-between border-b border-[#e8c9a8] dark:border-[#7e3914]/50 bg-white/60 dark:bg-[#3b1a0a]/60 rounded-t-xl">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-sm text-[#5c280d] dark:text-[#f0c49a]">
+            {column.title}
+          </h3>
+          <span className="text-xs font-semibold bg-[#e8c49a] dark:bg-[#7e3914] text-[#7e3914] dark:text-[#f9e3ce] px-2 py-0.5 rounded-full min-w-[22px] text-center tabular-nums">
             {column.tasks.length}
           </span>
-        </h3>
-        <div className="flex">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Palette className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 dark:bg-gray-800 dark:border-gray-700">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm dark:text-gray-200">
-                  Column Color
-                </h4>
-                <div className="grid grid-cols-4 gap-2">
-                  {COLUMN_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      className={`h-8 w-full rounded-md ${color.value} border dark:border-gray-700 hover:opacity-80 transition-opacity`}
-                      onClick={() => handleColorChange(color.value)}
-                      aria-label={`Set column color to ${color.name}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={onDeleteColumn}
-                className="text-red-600 dark:text-red-400"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Column
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 rounded-lg text-[#a04d1e]/60 hover:text-[#7e3914] hover:bg-[#f0c49a]/40 dark:text-[#e8a06a]/50 dark:hover:text-[#e8a06a] dark:hover:bg-[#7e3914]/40"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="bg-[#fdf4ed] border-[#e8c9a8] dark:bg-[#2e1206] dark:border-[#7e3914]/60 rounded-xl shadow-lg"
+          >
+            <DropdownMenuItem
+              onClick={onDeleteColumn}
+              className="text-red-600 dark:text-red-400 focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]/50 rounded-lg text-sm cursor-pointer"
+            >
+              <Trash2 className="mr-2 h-3.5 w-3.5" />
+              Delete Column
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
+      {/* Task List */}
       <Droppable droppableId={column.id}>
-        {(provided) => (
+        {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex-1 p-2 overflow-y-auto"
+            className={`flex-1 p-2 space-y-2 overflow-y-auto min-h-[60px] rounded-b-xl transition-colors ${
+              snapshot.isDraggingOver ? "bg-[#f0c49a]/20 dark:bg-[#7e3914]/20" : ""
+            }`}
           >
             {column.tasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
-                {(provided) => (
+                {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
+                    className={snapshot.isDragging ? "rotate-1 scale-[1.02] opacity-90" : ""}
+                    style={provided.draggableProps.style}
                   >
                     <TaskCard
                       task={task}
@@ -205,58 +126,70 @@ export default function Column({
             {provided.placeholder}
 
             {isAddingTask ? (
-              <div className="mt-2 p-3 bg-white dark:bg-gray-800 rounded-md shadow-sm border dark:border-gray-700">
-                <Label htmlFor="task-title" className="dark:text-gray-200">
-                  Task Title
-                </Label>
-                <Input
-                  id="task-title"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="Enter task title"
-                  className="mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) handleAddTask();
-                    if (e.key === "Escape") setIsAddingTask(false);
-                  }}
-                  autoFocus
-                />
-                <Label
-                  htmlFor="task-description"
-                  className="dark:text-gray-200"
-                >
-                  Description (optional)
-                </Label>
-                <Textarea
-                  id="task-description"
-                  value={newTaskDescription}
-                  onChange={(e) => setNewTaskDescription(e.target.value)}
-                  placeholder="Enter task description"
-                  className="mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddTask}>
+              <div className="p-3 bg-white dark:bg-[#3b1a0a] rounded-xl border border-[#e8c9a8] dark:border-[#7e3914]/60 shadow-sm space-y-2">
+                <div>
+                  <Label
+                    htmlFor="task-title"
+                    className="text-xs font-medium text-[#7e3914] dark:text-[#e8a06a]"
+                  >
+                    Task title
+                  </Label>
+                  <Input
+                    id="task-title"
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    placeholder="Enter task title"
+                    className="mt-1 text-sm bg-[#fdf4ed] dark:bg-[#2e1206] border-[#e8c9a8] dark:border-[#7e3914]/60 text-[#5c280d] dark:text-[#fdf4ed] placeholder:text-[#c09070] focus-visible:ring-1 focus-visible:ring-[#c06228] focus-visible:border-[#c06228] rounded-lg"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) handleAddTask();
+                      if (e.key === "Escape") setIsAddingTask(false);
+                    }}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="task-description"
+                    className="text-xs font-medium text-[#7e3914] dark:text-[#e8a06a]"
+                  >
+                    Description{" "}
+                    <span className="text-[#c09070] font-normal">(optional)</span>
+                  </Label>
+                  <Textarea
+                    id="task-description"
+                    value={newTaskDescription}
+                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                    placeholder="Enter task description"
+                    className="mt-1 text-sm bg-[#fdf4ed] dark:bg-[#2e1206] border-[#e8c9a8] dark:border-[#7e3914]/60 text-[#5c280d] dark:text-[#fdf4ed] placeholder:text-[#c09070] focus-visible:ring-1 focus-visible:ring-[#c06228] focus-visible:border-[#c06228] rounded-lg resize-none"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-2 pt-0.5">
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-[#c06228] hover:bg-[#a04d1e] text-white text-sm font-medium rounded-lg border-0"
+                    onClick={handleAddTask}
+                  >
                     Add
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsAddingTask(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
+                    className="flex-1 text-sm border-[#e8c9a8] dark:border-[#7e3914]/60 text-[#7e3914] dark:text-[#e8a06a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]/40 rounded-lg bg-transparent"
                   >
                     Cancel
                   </Button>
                 </div>
               </div>
             ) : (
-              <Button
-                variant="ghost"
-                className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 justify-start"
+              <button
+                className="w-full py-2 px-3 flex items-center gap-2 text-sm text-[#a04d1e]/70 dark:text-[#e8a06a]/60 hover:text-[#7e3914] dark:hover:text-[#f0c49a] hover:bg-[#f0c49a]/20 dark:hover:bg-[#7e3914]/20 rounded-lg transition-colors"
                 onClick={() => setIsAddingTask(true)}
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Task
-              </Button>
+                <Plus className="h-4 w-4" />
+                Add Task
+              </button>
             )}
           </div>
         )}

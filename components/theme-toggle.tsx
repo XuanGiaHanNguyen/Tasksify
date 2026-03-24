@@ -2,27 +2,26 @@
 
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
+  const { setTheme, theme, resolvedTheme } = useTheme()
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="h-9 w-9">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleTheme}
+      className="h-9 w-9 rounded-md bg-[#c06228]/20 hover:bg-[#c06228]/30 dark:bg-[#f0c49a]/10 dark:hover:bg-[#f0c49a]/20 border border-[#e8c9a8]/60 dark:border-[#7e3914]/60 text-[#fef5ed] dark:text-[#5d280d] transition-all"
+      aria-label="Toggle theme"
+    >
+      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   )
 }

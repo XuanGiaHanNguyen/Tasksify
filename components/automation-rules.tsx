@@ -104,26 +104,29 @@ export default function AutomationRules({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <Settings className="h-5 w-5 mr-2 dark:text-gray-300" />
-          <h3 className="text-lg font-medium dark:text-gray-200">Automation Rules</h3>
+          <Settings className="h-5 w-5 mr-2 text-[#a04d1e] dark:text-[#e8a06a]" />
+          <h3 className="text-lg font-medium text-[#5c280d] dark:text-[#fdf4ed]">Automation Rules</h3>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">
+            <Button
+              size="sm"
+              className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+            >
               <Plus className="h-4 w-4 mr-1" /> Add Rule
             </Button>
           </DialogTrigger>
-          <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
+          <DialogContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-200">Create Automation Rule</DialogTitle>
-              <DialogDescription className="dark:text-gray-400">
+              <DialogTitle className="text-[#3a1808] dark:text-[#fdf4ed]">Create Automation Rule</DialogTitle>
+              <DialogDescription className="text-[#7e3914] dark:text-[#e8a06a]">
                 Create a rule to automatically perform actions based on triggers.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="rule-name" className="dark:text-gray-300">
+                <Label htmlFor="rule-name" className="text-[#7e3914] dark:text-[#e8a06a]">
                   Rule Name
                 </Label>
                 <Input
@@ -131,14 +134,14 @@ export default function AutomationRules({
                   value={newRule.name}
                   onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                   placeholder="e.g., Move overdue tasks to Blocked"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                 />
               </div>
 
-              <Separator className="dark:bg-gray-700" />
+              <Separator className="bg-[#f0c49a] dark:bg-[#7e3914]" />
 
               <div className="space-y-2">
-                <Label className="dark:text-gray-300">When (Trigger)</Label>
+                <Label className="text-[#7e3914] dark:text-[#e8a06a]">When (Trigger)</Label>
                 <Select
                   value={newRule.trigger.type}
                   onValueChange={(value: AutomationRule["trigger"]["type"]) =>
@@ -151,14 +154,14 @@ export default function AutomationRules({
                     })
                   }
                 >
-                  <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                  <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                     <SelectValue placeholder="Select trigger type" />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                    <SelectItem value="due_date_passed">Due Date Passed</SelectItem>
-                    <SelectItem value="all_subtasks_completed">All Subtasks Completed</SelectItem>
-                    <SelectItem value="task_created">Task Created</SelectItem>
-                    <SelectItem value="task_moved">Task Moved To Column</SelectItem>
+                  <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
+                    <SelectItem value="due_date_passed" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Due Date Passed</SelectItem>
+                    <SelectItem value="all_subtasks_completed" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">All Subtasks Completed</SelectItem>
+                    <SelectItem value="task_created" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Task Created</SelectItem>
+                    <SelectItem value="task_moved" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Task Moved To Column</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -172,12 +175,16 @@ export default function AutomationRules({
                       })
                     }
                   >
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                       <SelectValue placeholder="Select column" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                    <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
                       {columns.map((column) => (
-                        <SelectItem key={column.id} value={column.id}>
+                        <SelectItem
+                          key={column.id}
+                          value={column.id}
+                          className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]"
+                        >
                           {column.title}
                         </SelectItem>
                       ))}
@@ -186,10 +193,10 @@ export default function AutomationRules({
                 )}
               </div>
 
-              <Separator className="dark:bg-gray-700" />
+              <Separator className="bg-[#f0c49a] dark:bg-[#7e3914]" />
 
               <div className="space-y-2">
-                <Label className="dark:text-gray-300">Then (Action)</Label>
+                <Label className="text-[#7e3914] dark:text-[#e8a06a]">Then (Action)</Label>
                 <Select
                   value={newRule.action.type}
                   onValueChange={(value: AutomationRule["action"]["type"]) =>
@@ -202,13 +209,13 @@ export default function AutomationRules({
                     })
                   }
                 >
-                  <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                  <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                     <SelectValue placeholder="Select action type" />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                    <SelectItem value="move_to_column">Move to Column</SelectItem>
-                    <SelectItem value="set_priority">Set Priority</SelectItem>
-                    <SelectItem value="add_label">Add Label</SelectItem>
+                  <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
+                    <SelectItem value="move_to_column" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Move to Column</SelectItem>
+                    <SelectItem value="set_priority" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Set Priority</SelectItem>
+                    <SelectItem value="add_label" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Add Label</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -222,12 +229,16 @@ export default function AutomationRules({
                       })
                     }
                   >
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                       <SelectValue placeholder="Select target column" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                    <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
                       {columns.map((column) => (
-                        <SelectItem key={column.id} value={column.id}>
+                        <SelectItem
+                          key={column.id}
+                          value={column.id}
+                          className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]"
+                        >
                           {column.title}
                         </SelectItem>
                       ))}
@@ -245,14 +256,14 @@ export default function AutomationRules({
                       })
                     }
                   >
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    <SelectTrigger className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus:ring-[#c06228]">
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectContent className="bg-[#fdf4ed] border-[#f0c49a] dark:bg-[#5c280d] dark:border-[#7e3914]">
+                      <SelectItem value="low" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Low</SelectItem>
+                      <SelectItem value="medium" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Medium</SelectItem>
+                      <SelectItem value="high" className="text-[#3a1808] dark:text-[#fdf4d] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">High</SelectItem>
+                      <SelectItem value="urgent" className="text-[#3a1808] dark:text-[#fdf4ed] focus:bg-[#f9e3ce] dark:focus:bg-[#7e3914]">Urgent</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -267,7 +278,7 @@ export default function AutomationRules({
                       })
                     }
                     placeholder="Label name"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="bg-white dark:bg-[#7e3914] border-[#e8a06a] dark:border-[#a04d1e] text-[#3a1808] dark:text-[#fdf4ed] focus-visible:ring-[#c06228]"
                   />
                 )}
               </div>
@@ -277,18 +288,23 @@ export default function AutomationRules({
               <Button
                 variant="outline"
                 onClick={() => setIsOpen(false)}
-                className="dark:border-gray-600 dark:text-gray-200"
+                className="border-[#e8a06a] text-[#7e3914] dark:border-[#a04d1e] dark:text-[#f0c49a] hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddRule}>Create Rule</Button>
+              <Button
+                onClick={handleAddRule}
+                className="bg-[#c06228] hover:bg-[#a04d1e] text-[#fdf4ed] border-0"
+              >
+                Create Rule
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {rules.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8 text-[#a04d1e] dark:text-[#e8a06a]">
           <p>No automation rules yet. Create one to automate your workflow.</p>
         </div>
       ) : (
@@ -296,11 +312,11 @@ export default function AutomationRules({
           {rules.map((rule) => (
             <div
               key={rule.id}
-              className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-md border dark:border-gray-700"
+              className="flex items-center justify-between p-3 bg-white dark:bg-[#5c280d] rounded-md border border-[#f0c49a] dark:border-[#7e3914]"
             >
               <div className="flex-1">
-                <div className="font-medium dark:text-gray-200">{rule.name}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="font-medium text-[#3a1808] dark:text-[#fdf4ed]">{rule.name}</div>
+                <div className="text-sm text-[#7e3914] dark:text-[#e8a06a]">
                   {getTriggerDescription(rule.trigger)} → {getActionDescription(rule.action)}
                 </div>
               </div>
@@ -309,11 +325,12 @@ export default function AutomationRules({
                   checked={rule.enabled}
                   onCheckedChange={(checked) => toggleRuleEnabled(rule.id, checked)}
                   aria-label={rule.enabled ? "Disable rule" : "Enable rule"}
+                  className="data-[state=checked]:bg-[#c06228]"
                 />
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                  className="h-8 w-8 text-[#a04d1e] dark:text-[#e8a06a] hover:text-red-600 dark:hover:text-red-400 hover:bg-[#f9e3ce] dark:hover:bg-[#7e3914]"
                   onClick={() => onDeleteRule(rule.id)}
                 >
                   <Trash2 className="h-4 w-4" />
