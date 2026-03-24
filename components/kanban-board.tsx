@@ -191,6 +191,7 @@ export default function KanbanBoard() {
     const tasksInColumn = getTasksForColumn(columnId);
 
     const newTask = {
+      id: generateId(),
       column_id: columnId,
       title: taskData.title || "New Task",
       description: taskData.description || null,
@@ -241,6 +242,7 @@ export default function KanbanBoard() {
         }
       } else {
         await api.createSubtask({
+          id: subtask.id,
           task_id: updatedTask.id,
           title: subtask.title,
           completed: subtask.completed,

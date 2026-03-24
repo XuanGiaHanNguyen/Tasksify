@@ -1,43 +1,51 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import './globals.css'
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'My Tasks',
-  description: 'Oh well well',
-  generator: 'v0.app',
+  title: "My Tasks",
+  description: "Oh well well",
+  generator: "v0.app",
   icons: {
     icon: [
       {
-        url: '/logo.jpg',
-        media: '(prefers-color-scheme: light)',
+        url: "/logo.jpg",
+        media: "(prefers-color-scheme: light)",
       },
       {
-        url: '/logo.jpg',
-        media: '(prefers-color-scheme: dark)',
+        url: "/logo.jpg",
+        media: "(prefers-color-scheme: dark)",
       },
       {
-        url: '/logo.jpg',
-        type: 'image/svg+xml',
+        url: "/logo.jpg",
+        type: "image/svg+xml",
       },
     ],
-    apple: '/apple-icon.png',
+    apple: "/apple-icon.png",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

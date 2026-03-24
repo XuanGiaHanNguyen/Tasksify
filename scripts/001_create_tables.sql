@@ -10,12 +10,15 @@ CREATE TABLE IF NOT EXISTS columns (
 -- Create tasks table
 CREATE TABLE IF NOT EXISTS tasks (
   id TEXT PRIMARY KEY,
+  column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
-  status TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'medium',
+  labels TEXT[] DEFAULT '{}',
   due_date TIMESTAMPTZ,
-  column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
+  assignee TEXT,
   position INTEGER NOT NULL DEFAULT 0,
+  custom_field_values JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

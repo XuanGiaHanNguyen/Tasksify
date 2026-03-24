@@ -310,6 +310,7 @@ export const api = {
 
   // Subtasks
   async createSubtask(subtask: {
+    id: string;
     task_id: string;
     title: string;
     completed?: boolean;
