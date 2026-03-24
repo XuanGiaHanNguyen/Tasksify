@@ -17,14 +17,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import type { Rule, Column } from "@/types/kanban"
+import type { AutomationRule, Column } from "@/types/kanban"
 import { generateId } from "@/lib/utils"
 
 interface AutomationRulesProps {
-  rules: Rule[]
+  rules: AutomationRule[]
   columns: Column[]
-  onAddRule: (rule: Rule) => void
-  onUpdateRule: (ruleId: string, updates: Partial<Rule>) => void
+  onAddRule: (rule: AutomationRule) => void
+  onUpdateRule: (ruleId: string, updates: Partial<AutomationRule>) => void
   onDeleteRule: (ruleId: string) => void
 }
 
@@ -36,16 +36,15 @@ export default function AutomationRules({
   onDeleteRule,
 }: AutomationRulesProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [newRule, setNewRule] = useState<Rule>({
+  const [newRule, setNewRule] = useState<AutomationRule>({
     id: `rule-${generateId()}`,
     name: "",
-    condition: {
-      type: "due-date",
-      operator: "is-overdue",
+    trigger: {
+      type: "due_date_passed",
     },
     action: {
-      type: "move-to-column",
-      targetColumnId: columns[0]?.id || "",
+      type: "move_to_column",
+      value: columns[0]?.id || "",
     },
     enabled: true,
   })
@@ -57,13 +56,12 @@ export default function AutomationRules({
     setNewRule({
       id: `rule-${generateId()}`,
       name: "",
-      condition: {
-        type: "due-date",
-        operator: "is-overdue",
+      trigger: {
+        type: "due_date_passed",
       },
       action: {
-        type: "move-to-column",
-        targetColumnId: columns[0]?.id || "",
+        type: "move_to_column",
+        value: columns[0]?.id || "",
       },
       enabled: true,
     })
@@ -72,6 +70,34 @@ export default function AutomationRules({
 
   const toggleRuleEnabled = (ruleId: string, enabled: boolean) => {
     onUpdateRule(ruleId, { enabled })
+  }
+
+  const getTriggerDescription = (trigger: AutomationRule["trigger"]) => {
+    switch (trigger.type) {
+      case "task_moved":
+        return `When task is moved to ${columns.find(c => c.id === trigger.value)?.title || "column"}`
+      case "task_created":
+        return "When a task is created"
+      case "due_date_passed":
+        return "When due date has passed"
+      case "all_subtasks_completed":
+        return "When all subtasks are completed"
+      default:
+        return "Unknown trigger"
+    }
+  }
+
+  const getActionDescription = (action: AutomationRule["action"]) => {
+    switch (action.type) {
+      case "move_to_column":
+        return `Move to ${columns.find(c => c.id === action.value)?.title || "column"}`
+      case "set_priority":
+        return `Set priority to ${action.value}`
+      case "add_label":
+        return `Add label "${action.value}"`
+      default:
+        return "Unknown action"
+    }
   }
 
   return (
@@ -91,7 +117,7 @@ export default function AutomationRules({
             <DialogHeader>
               <DialogTitle className="dark:text-gray-200">Create Automation Rule</DialogTitle>
               <DialogDescription className="dark:text-gray-400">
-                Create a rule to automatically move tasks based on conditions.
+                Create a rule to automatically perform actions based on triggers.
               </DialogDescription>
             </DialogHeader>
 
@@ -112,116 +138,51 @@ export default function AutomationRules({
               <Separator className="dark:bg-gray-700" />
 
               <div className="space-y-2">
-                <Label className="dark:text-gray-300">When (Condition)</Label>
+                <Label className="dark:text-gray-300">When (Trigger)</Label>
                 <Select
-                  value={newRule.condition.type}
-                  onValueChange={(value: "due-date" | "subtasks-completed" | "custom-field") =>
+                  value={newRule.trigger.type}
+                  onValueChange={(value: AutomationRule["trigger"]["type"]) =>
                     setNewRule({
                       ...newRule,
-                      condition: {
-                        ...newRule.condition,
+                      trigger: {
                         type: value,
-                        operator:
-                          value === "due-date"
-                            ? "is-overdue"
-                            : value === "subtasks-completed"
-                              ? "all-completed"
-                              : "equals",
+                        value: value === "task_moved" ? columns[0]?.id : undefined,
                       },
                     })
                   }
                 >
                   <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                    <SelectValue placeholder="Select condition type" />
+                    <SelectValue placeholder="Select trigger type" />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                    <SelectItem value="due-date">Due Date</SelectItem>
-                    <SelectItem value="subtasks-completed">Subtasks</SelectItem>
-                    <SelectItem value="custom-field">Custom Field</SelectItem>
+                    <SelectItem value="due_date_passed">Due Date Passed</SelectItem>
+                    <SelectItem value="all_subtasks_completed">All Subtasks Completed</SelectItem>
+                    <SelectItem value="task_created">Task Created</SelectItem>
+                    <SelectItem value="task_moved">Task Moved To Column</SelectItem>
                   </SelectContent>
                 </Select>
 
-                {newRule.condition.type === "due-date" && (
+                {newRule.trigger.type === "task_moved" && (
                   <Select
-                    value={newRule.condition.operator}
-                    onValueChange={(value: "is-overdue") =>
+                    value={newRule.trigger.value || ""}
+                    onValueChange={(value) =>
                       setNewRule({
                         ...newRule,
-                        condition: { ...newRule.condition, operator: value },
+                        trigger: { ...newRule.trigger, value },
                       })
                     }
                   >
                     <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                      <SelectValue placeholder="Select operator" />
+                      <SelectValue placeholder="Select column" />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="is-overdue">Is Overdue</SelectItem>
+                      {columns.map((column) => (
+                        <SelectItem key={column.id} value={column.id}>
+                          {column.title}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                )}
-
-                {newRule.condition.type === "subtasks-completed" && (
-                  <Select
-                    value={newRule.condition.operator}
-                    onValueChange={(value: "all-completed") =>
-                      setNewRule({
-                        ...newRule,
-                        condition: { ...newRule.condition, operator: value },
-                      })
-                    }
-                  >
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                      <SelectValue placeholder="Select operator" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="all-completed">All Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-
-                {newRule.condition.type === "custom-field" && (
-                  <>
-                    <Input
-                      placeholder="Field name"
-                      value={newRule.condition.field || ""}
-                      onChange={(e) =>
-                        setNewRule({
-                          ...newRule,
-                          condition: { ...newRule.condition, field: e.target.value },
-                        })
-                      }
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                    />
-                    <Select
-                      value={newRule.condition.operator}
-                      onValueChange={(value: "equals" | "not-equals" | "contains") =>
-                        setNewRule({
-                          ...newRule,
-                          condition: { ...newRule.condition, operator: value },
-                        })
-                      }
-                    >
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                        <SelectValue placeholder="Select operator" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                        <SelectItem value="equals">Equals</SelectItem>
-                        <SelectItem value="not-equals">Not Equals</SelectItem>
-                        <SelectItem value="contains">Contains</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Value"
-                      value={newRule.condition.value || ""}
-                      onChange={(e) =>
-                        setNewRule({
-                          ...newRule,
-                          condition: { ...newRule.condition, value: e.target.value },
-                        })
-                      }
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                    />
-                  </>
                 )}
               </div>
 
@@ -230,25 +191,85 @@ export default function AutomationRules({
               <div className="space-y-2">
                 <Label className="dark:text-gray-300">Then (Action)</Label>
                 <Select
-                  value={newRule.action.targetColumnId}
-                  onValueChange={(value) =>
+                  value={newRule.action.type}
+                  onValueChange={(value: AutomationRule["action"]["type"]) =>
                     setNewRule({
                       ...newRule,
-                      action: { ...newRule.action, targetColumnId: value },
+                      action: {
+                        type: value,
+                        value: value === "move_to_column" ? columns[0]?.id || "" : "",
+                      },
                     })
                   }
                 >
                   <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                    <SelectValue placeholder="Move to column" />
+                    <SelectValue placeholder="Select action type" />
                   </SelectTrigger>
                   <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                    {columns.map((column) => (
-                      <SelectItem key={column.id} value={column.id}>
-                        Move to {column.title}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="move_to_column">Move to Column</SelectItem>
+                    <SelectItem value="set_priority">Set Priority</SelectItem>
+                    <SelectItem value="add_label">Add Label</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {newRule.action.type === "move_to_column" && (
+                  <Select
+                    value={newRule.action.value}
+                    onValueChange={(value) =>
+                      setNewRule({
+                        ...newRule,
+                        action: { ...newRule.action, value },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                      <SelectValue placeholder="Select target column" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                      {columns.map((column) => (
+                        <SelectItem key={column.id} value={column.id}>
+                          {column.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {newRule.action.type === "set_priority" && (
+                  <Select
+                    value={newRule.action.value}
+                    onValueChange={(value) =>
+                      setNewRule({
+                        ...newRule,
+                        action: { ...newRule.action, value },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {newRule.action.type === "add_label" && (
+                  <Input
+                    value={newRule.action.value}
+                    onChange={(e) =>
+                      setNewRule({
+                        ...newRule,
+                        action: { ...newRule.action, value: e.target.value },
+                      })
+                    }
+                    placeholder="Label name"
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  />
+                )}
               </div>
             </div>
 
@@ -280,12 +301,7 @@ export default function AutomationRules({
               <div className="flex-1">
                 <div className="font-medium dark:text-gray-200">{rule.name}</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {rule.condition.type === "due-date" && "When task is overdue"}
-                  {rule.condition.type === "subtasks-completed" && "When all subtasks are completed"}
-                  {rule.condition.type === "custom-field" &&
-                    `When ${rule.condition.field} ${rule.condition.operator} ${rule.condition.value}`}
-                  {" → "}
-                  Move to {columns.find((col) => col.id === rule.action.targetColumnId)?.title}
+                  {getTriggerDescription(rule.trigger)} → {getActionDescription(rule.action)}
                 </div>
               </div>
               <div className="flex items-center gap-2">

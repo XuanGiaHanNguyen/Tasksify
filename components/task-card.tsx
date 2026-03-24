@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { Calendar, CheckSquare, Copy } from "lucide-react"
+import { Calendar, CheckSquare, Copy, AlertCircle, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Task } from "@/types/kanban"
 import { formatDate } from "@/lib/utils"
@@ -13,12 +13,19 @@ interface TaskCardProps {
   onDuplicate: () => void
 }
 
+const priorityColors = {
+  low: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+  medium: "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300",
+  high: "bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-300",
+  urgent: "bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300",
+}
+
 export default function TaskCard({ task, onClick, onDuplicate }: TaskCardProps) {
   const completedSubtasks = task.subtasks.filter((subtask) => subtask.completed).length
   const totalSubtasks = task.subtasks.length
 
   // Determine if task is overdue
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Completed"
+  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date()
 
   const handleDuplicate = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -48,11 +55,17 @@ export default function TaskCard({ task, onClick, onDuplicate }: TaskCardProps) 
       )}
 
       <div className="flex flex-wrap gap-2 mt-2">
+        {/* Priority badge */}
+        <div className={`flex items-center text-xs px-2 py-1 rounded-md ${priorityColors[task.priority]}`}>
+          <AlertCircle className="h-3 w-3 mr-1" />
+          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+        </div>
+
         {task.dueDate && (
           <div
             className={`flex items-center text-xs ${
-              isOverdue ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"
-            } bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-md`}
+              isOverdue ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30" : "text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700"
+            } px-2 py-1 rounded-md`}
           >
             <Calendar className="h-3 w-3 mr-1" />
             {formatDate(task.dueDate)}
@@ -66,19 +79,20 @@ export default function TaskCard({ task, onClick, onDuplicate }: TaskCardProps) 
           </div>
         )}
 
-        {task.customFields.map(
-          (field) =>
-            field.value && (
-              <div
-                key={field.id}
-                className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-md"
-              >
-                {field.name}:{" "}
-                {field.value.toString().length > 10
-                  ? field.value.toString().substring(0, 10) + "..."
-                  : field.value.toString()}
-              </div>
-            ),
+        {/* Labels */}
+        {task.labels.slice(0, 2).map((label) => (
+          <div
+            key={label}
+            className="flex items-center text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-md"
+          >
+            <Tag className="h-3 w-3 mr-1" />
+            {label}
+          </div>
+        ))}
+        {task.labels.length > 2 && (
+          <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-md">
+            +{task.labels.length - 2}
+          </div>
         )}
       </div>
     </div>

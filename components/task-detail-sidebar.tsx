@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Calendar, Trash2, Plus, CheckSquare, Square, Edit, Copy } from "lucide-react"
+import { X, Calendar, Trash2, Plus, CheckSquare, Square, Edit, Copy, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Task, Column, Subtask, CustomField } from "@/types/kanban"
+import { Badge } from "@/components/ui/badge"
+import type { Task, Column, SubTask } from "@/types/kanban"
 import { formatDate, generateId } from "@/lib/utils"
 import {
   AlertDialog,
@@ -23,13 +24,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
+interface ColumnWithTasks extends Column {
+  tasks: Task[]
+}
+
 interface TaskDetailSidebarProps {
   task: Task
   onClose: () => void
   onUpdate: (task: Task) => void
   onDelete: (taskId: string) => void
   onDuplicate: (task: Task) => void
-  columns: Column[]
+  columns: ColumnWithTasks[]
 }
 
 export default function TaskDetailSidebar({
@@ -45,9 +50,8 @@ export default function TaskDetailSidebar({
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("")
   const [isAddingSubtask, setIsAddingSubtask] = useState(false)
-  const [newCustomFieldName, setNewCustomFieldName] = useState("")
-  const [newCustomFieldValue, setNewCustomFieldValue] = useState("")
-  const [isAddingCustomField, setIsAddingCustomField] = useState(false)
+  const [newLabel, setNewLabel] = useState("")
+  const [isAddingLabel, setIsAddingLabel] = useState(false)
 
   const handleTitleSave = () => {
     if (editedTask.title.trim()) {
@@ -61,8 +65,14 @@ export default function TaskDetailSidebar({
     setIsEditingDescription(false)
   }
 
-  const handleStatusChange = (status: string) => {
-    const updatedTask = { ...editedTask, status }
+  const handleColumnChange = (columnId: string) => {
+    const updatedTask = { ...editedTask, columnId }
+    setEditedTask(updatedTask)
+    onUpdate(updatedTask)
+  }
+
+  const handlePriorityChange = (priority: Task["priority"]) => {
+    const updatedTask = { ...editedTask, priority }
     setEditedTask(updatedTask)
     onUpdate(updatedTask)
   }
@@ -70,7 +80,7 @@ export default function TaskDetailSidebar({
   const handleDueDateChange = (date: Date | undefined) => {
     const updatedTask = {
       ...editedTask,
-      dueDate: date ? date.toISOString() : null,
+      dueDate: date ? date.toISOString() : undefined,
     }
     setEditedTask(updatedTask)
     onUpdate(updatedTask)
@@ -89,7 +99,7 @@ export default function TaskDetailSidebar({
   const addSubtask = () => {
     if (!newSubtaskTitle.trim()) return
 
-    const newSubtask: Subtask = {
+    const newSubtask: SubTask = {
       id: `subtask-${generateId()}`,
       title: newSubtaskTitle,
       completed: false,
@@ -114,39 +124,26 @@ export default function TaskDetailSidebar({
     onUpdate(updatedTask)
   }
 
-  const addCustomField = () => {
-    if (!newCustomFieldName.trim()) return
-
-    const newField: CustomField = {
-      id: `field-${generateId()}`,
-      name: newCustomFieldName,
-      value: newCustomFieldValue,
-    }
+  const addLabel = () => {
+    if (!newLabel.trim() || editedTask.labels.includes(newLabel.trim())) return
 
     const updatedTask = {
       ...editedTask,
-      customFields: [...editedTask.customFields, newField],
+      labels: [...editedTask.labels, newLabel.trim()],
     }
 
     setEditedTask(updatedTask)
     onUpdate(updatedTask)
-    setNewCustomFieldName("")
-    setNewCustomFieldValue("")
-    setIsAddingCustomField(false)
+    setNewLabel("")
+    setIsAddingLabel(false)
   }
 
-  const updateCustomField = (fieldId: string, value: string) => {
-    const updatedFields = editedTask.customFields.map((field) => (field.id === fieldId ? { ...field, value } : field))
+  const removeLabel = (label: string) => {
+    const updatedTask = {
+      ...editedTask,
+      labels: editedTask.labels.filter((l) => l !== label),
+    }
 
-    const updatedTask = { ...editedTask, customFields: updatedFields }
-    setEditedTask(updatedTask)
-    onUpdate(updatedTask)
-  }
-
-  const deleteCustomField = (fieldId: string) => {
-    const updatedFields = editedTask.customFields.filter((field) => field.id !== fieldId)
-
-    const updatedTask = { ...editedTask, customFields: updatedFields }
     setEditedTask(updatedTask)
     onUpdate(updatedTask)
   }
@@ -178,6 +175,11 @@ export default function TaskDetailSidebar({
                   value={editedTask.title}
                   onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
                   className="text-lg font-medium dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleTitleSave()
+                    if (e.key === "Escape") setIsEditingTitle(false)
+                  }}
+                  autoFocus
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleTitleSave}>
@@ -203,19 +205,35 @@ export default function TaskDetailSidebar({
             )}
           </div>
 
-          {/* Status */}
+          {/* Column (Status) */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Status</label>
-            <Select value={editedTask.status} onValueChange={handleStatusChange}>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Column</label>
+            <Select value={editedTask.columnId} onValueChange={handleColumnChange}>
               <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Select column" />
               </SelectTrigger>
               <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
                 {columns.map((column) => (
-                  <SelectItem key={column.id} value={column.title}>
+                  <SelectItem key={column.id} value={column.id}>
                     {column.title}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Priority */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Priority</label>
+            <Select value={editedTask.priority} onValueChange={handlePriorityChange}>
+              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -243,6 +261,64 @@ export default function TaskDetailSidebar({
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          {/* Labels */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Labels</label>
+              <Button variant="ghost" size="sm" onClick={() => setIsAddingLabel(true)}>
+                <Plus className="h-3 w-3 mr-1" /> Add
+              </Button>
+            </div>
+
+            {isAddingLabel && (
+              <div className="mb-3 space-y-2">
+                <Input
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder="Label name"
+                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addLabel()
+                    if (e.key === "Escape") setIsAddingLabel(false)
+                  }}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={addLabel}>
+                    Add
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsAddingLabel(false)}
+                    className="dark:border-gray-600 dark:text-gray-200"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {editedTask.labels.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No labels yet.</p>
+              ) : (
+                editedTask.labels.map((label) => (
+                  <Badge
+                    key={label}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30"
+                    onClick={() => removeLabel(label)}
+                  >
+                    <Tag className="h-3 w-3 mr-1" />
+                    {label}
+                    <X className="h-3 w-3 ml-1" />
+                  </Badge>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Description */}
@@ -304,6 +380,11 @@ export default function TaskDetailSidebar({
                   onChange={(e) => setNewSubtaskTitle(e.target.value)}
                   placeholder="Subtask title"
                   className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addSubtask()
+                    if (e.key === "Escape") setIsAddingSubtask(false)
+                  }}
+                  autoFocus
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={addSubtask}>
@@ -354,80 +435,6 @@ export default function TaskDetailSidebar({
                       size="icon"
                       className="h-6 w-6 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
                       onClick={() => deleteSubtask(subtask.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <Separator className="dark:bg-gray-700" />
-
-          {/* Custom Fields */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Fields</h4>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingCustomField(true)}>
-                <Plus className="h-3 w-3 mr-1" /> Add
-              </Button>
-            </div>
-
-            {isAddingCustomField && (
-              <div className="mb-3 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    value={newCustomFieldName}
-                    onChange={(e) => setNewCustomFieldName(e.target.value)}
-                    placeholder="Field name"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  />
-                  <Input
-                    value={newCustomFieldValue}
-                    onChange={(e) => setNewCustomFieldValue(e.target.value)}
-                    placeholder="Field value"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={addCustomField}>
-                    Add
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsAddingCustomField(false)}
-                    className="dark:border-gray-600 dark:text-gray-200"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {editedTask.customFields.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No custom fields yet.</p>
-              ) : (
-                editedTask.customFields.map((field) => (
-                  <div
-                    key={field.id}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded-md"
-                  >
-                    <div className="grid grid-cols-2 gap-2 flex-1 mr-2">
-                      <div className="text-sm font-medium dark:text-gray-200">{field.name}:</div>
-                      <Input
-                        value={field.value || ""}
-                        onChange={(e) => updateCustomField(field.id, e.target.value)}
-                        className="h-7 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                      onClick={() => deleteCustomField(field.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

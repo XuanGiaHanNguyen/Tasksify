@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd"
-import { Plus } from "lucide-react"
+import { Plus, Loader2 } from "lucide-react"
 import Column from "./column"
 import TaskDetailSidebar from "./task-detail-sidebar"
 import AutomationRules from "./automation-rules"
@@ -12,416 +12,131 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import type { Task, Column as ColumnType, Rule } from "@/types/kanban"
+import { useColumns, useTasks, useAutomationRules, api } from "@/hooks/use-kanban"
+import type { Task, Column as ColumnType, AutomationRule } from "@/types/kanban"
 import { generateId } from "@/lib/utils"
 
-// Mock data for initial tasks
-const generateMockTasks = (): { [key: string]: Task[] } => {
-  // Helper to create a date string (past or future)
-  const createDate = (daysFromNow: number): string => {
-    const date = new Date()
-    date.setDate(date.getDate() + daysFromNow)
-    return date.toISOString()
-  }
-
-  // To Do tasks
-  const todoTasks: Task[] = [
-    {
-      id: `task-${generateId()}`,
-      title: "Research competitor products",
-      description: "Analyze top 5 competitor products and create a comparison report",
-      status: "To Do",
-      dueDate: createDate(5),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Identify top competitors", completed: false },
-        { id: `subtask-${generateId()}`, title: "Create comparison criteria", completed: false },
-        { id: `subtask-${generateId()}`, title: "Gather product information", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "High" },
-        { id: `field-${generateId()}`, name: "Estimated Hours", value: "8" },
-      ],
-      createdAt: createDate(-2),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Design new landing page",
-      description: "Create wireframes and mockups for the new product landing page",
-      status: "To Do",
-      dueDate: createDate(7),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Research design trends", completed: false },
-        { id: `subtask-${generateId()}`, title: "Create wireframes", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "Medium" },
-        { id: `field-${generateId()}`, name: "Assigned To", value: "Sarah" },
-      ],
-      createdAt: createDate(-1),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Update documentation",
-      description: "Update the user documentation with the latest features",
-      status: "To Do",
-      dueDate: createDate(3),
-      subtasks: [],
-      customFields: [{ id: `field-${generateId()}`, name: "Priority", value: "Low" }],
-      createdAt: createDate(-3),
-    },
-  ]
-
-  // In Progress tasks
-  const inProgressTasks: Task[] = [
-    {
-      id: `task-${generateId()}`,
-      title: "Implement authentication flow",
-      description: "Create login, registration, and password reset functionality",
-      status: "In Progress",
-      dueDate: createDate(2),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Design authentication screens", completed: true },
-        { id: `subtask-${generateId()}`, title: "Implement login functionality", completed: true },
-        { id: `subtask-${generateId()}`, title: "Implement registration", completed: false },
-        { id: `subtask-${generateId()}`, title: "Implement password reset", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "High" },
-        { id: `field-${generateId()}`, name: "Assigned To", value: "Michael" },
-        { id: `field-${generateId()}`, name: "Story Points", value: "8" },
-      ],
-      createdAt: createDate(-5),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Optimize database queries",
-      description: "Improve performance of slow database queries on the dashboard",
-      status: "In Progress",
-      dueDate: createDate(1),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Identify slow queries", completed: true },
-        { id: `subtask-${generateId()}`, title: "Add indexes", completed: false },
-        { id: `subtask-${generateId()}`, title: "Rewrite complex queries", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "High" },
-        { id: `field-${generateId()}`, name: "Estimated Hours", value: "6" },
-      ],
-      createdAt: createDate(-4),
-    },
-  ]
-
-  // Blocked tasks
-  const blockedTasks: Task[] = [
-    {
-      id: `task-${generateId()}`,
-      title: "Fix payment integration",
-      description: "Resolve issues with the Stripe payment integration",
-      status: "Blocked",
-      dueDate: createDate(-1), // Overdue
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Investigate error logs", completed: true },
-        { id: `subtask-${generateId()}`, title: "Contact Stripe support", completed: true },
-        { id: `subtask-${generateId()}`, title: "Update API integration", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "Critical" },
-        { id: `field-${generateId()}`, name: "Blocker", value: "Waiting for API documentation" },
-      ],
-      createdAt: createDate(-7),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Finalize third-party integrations",
-      description: "Complete integration with analytics and marketing tools",
-      status: "Blocked",
-      dueDate: createDate(-2), // Overdue
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Set up Google Analytics", completed: true },
-        { id: `subtask-${generateId()}`, title: "Integrate Mailchimp", completed: false },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "Medium" },
-        { id: `field-${generateId()}`, name: "Blocker", value: "Waiting for API keys" },
-      ],
-      createdAt: createDate(-6),
-    },
-  ]
-
-  // Completed tasks
-  const completedTasks: Task[] = [
-    {
-      id: `task-${generateId()}`,
-      title: "Create project proposal",
-      description: "Draft and finalize the project proposal document",
-      status: "Completed",
-      dueDate: createDate(-5),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Research market needs", completed: true },
-        { id: `subtask-${generateId()}`, title: "Define project scope", completed: true },
-        { id: `subtask-${generateId()}`, title: "Create budget estimate", completed: true },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "High" },
-        { id: `field-${generateId()}`, name: "Completed On", value: createDate(-6).split("T")[0] },
-      ],
-      createdAt: createDate(-10),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Set up development environment",
-      description: "Configure development, staging, and production environments",
-      status: "Completed",
-      dueDate: createDate(-8),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Set up local environment", completed: true },
-        { id: `subtask-${generateId()}`, title: "Configure staging server", completed: true },
-        { id: `subtask-${generateId()}`, title: "Set up CI/CD pipeline", completed: true },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "Medium" },
-        { id: `field-${generateId()}`, name: "Completed By", value: "David" },
-      ],
-      createdAt: createDate(-12),
-    },
-    {
-      id: `task-${generateId()}`,
-      title: "Initial user research",
-      description: "Conduct interviews and surveys with potential users",
-      status: "Completed",
-      dueDate: createDate(-15),
-      subtasks: [
-        { id: `subtask-${generateId()}`, title: "Create research questions", completed: true },
-        { id: `subtask-${generateId()}`, title: "Recruit participants", completed: true },
-        { id: `subtask-${generateId()}`, title: "Analyze results", completed: true },
-      ],
-      customFields: [
-        { id: `field-${generateId()}`, name: "Priority", value: "High" },
-        { id: `field-${generateId()}`, name: "Participants", value: "12" },
-      ],
-      createdAt: createDate(-20),
-    },
-  ]
-
-  return {
-    "To Do": todoTasks,
-    "In Progress": inProgressTasks,
-    Blocked: blockedTasks,
-    Completed: completedTasks,
-  }
-}
+// Default column colors
+const DEFAULT_COLORS = [
+  "bg-blue-50 dark:bg-blue-900/30",
+  "bg-yellow-50 dark:bg-yellow-900/30",
+  "bg-red-50 dark:bg-red-900/30",
+  "bg-green-50 dark:bg-green-900/30",
+  "bg-purple-50 dark:bg-purple-900/30",
+  "bg-pink-50 dark:bg-pink-900/30",
+]
 
 export default function KanbanBoard() {
   const { toast } = useToast()
-  const [columns, setColumns] = useState<ColumnType[]>([])
+  const { columns: dbColumns, isLoading: columnsLoading } = useColumns()
+  const { tasks: dbTasks, isLoading: tasksLoading } = useTasks()
+  const { automationRules, isLoading: rulesLoading } = useAutomationRules()
+  
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [newColumnTitle, setNewColumnTitle] = useState("")
   const [isAddingColumn, setIsAddingColumn] = useState(false)
-  const [rules, setRules] = useState<Rule[]>([])
   const [activeTab, setActiveTab] = useState("board")
+  const [initialized, setInitialized] = useState(false)
 
-  // Initialize with default columns and mock data
+  // Initialize default columns if none exist
   useEffect(() => {
-    const mockTasks = generateMockTasks()
-
-    const initialColumns: ColumnType[] = [
-      {
-        id: "column-1",
-        title: "To Do",
-        tasks: mockTasks["To Do"],
-        color: "bg-blue-50 dark:bg-blue-900/30",
-      },
-      {
-        id: "column-2",
-        title: "In Progress",
-        tasks: mockTasks["In Progress"],
-        color: "bg-yellow-50 dark:bg-yellow-900/30",
-      },
-      {
-        id: "column-3",
-        title: "Blocked",
-        tasks: mockTasks["Blocked"],
-        color: "bg-red-50 dark:bg-red-900/30",
-      },
-      {
-        id: "column-4",
-        title: "Completed",
-        tasks: mockTasks["Completed"],
-        color: "bg-green-50 dark:bg-green-900/30",
-      },
-    ]
-    setColumns(initialColumns)
-
-    // Add a sample automation rule
-    setRules([
-      {
-        id: `rule-${generateId()}`,
-        name: "Move overdue tasks to Blocked",
-        condition: {
-          type: "due-date",
-          operator: "is-overdue",
-        },
-        action: {
-          type: "move-to-column",
-          targetColumnId: "column-3", // Blocked column
-        },
-        enabled: true,
-      },
-      {
-        id: `rule-${generateId()}`,
-        name: "Move completed tasks when all subtasks done",
-        condition: {
-          type: "subtasks-completed",
-          operator: "all-completed",
-        },
-        action: {
-          type: "move-to-column",
-          targetColumnId: "column-4", // Completed column
-        },
-        enabled: true,
-      },
-    ])
-  }, [])
-
-  // Process automation rules
-  useEffect(() => {
-    if (rules.length === 0) return
-
-    // Only process enabled rules
-    const enabledRules = rules.filter((rule) => rule.enabled)
-    if (enabledRules.length === 0) return
-
-    const tasksToMove: { taskId: string; sourceColumnId: string; targetColumnId: string }[] = []
-
-    // Check each task against each rule
-    columns.forEach((column) => {
-      column.tasks.forEach((task) => {
-        enabledRules.forEach((rule) => {
-          const { condition, action } = rule
-          let conditionMet = false
-
-          // Check if condition is met
-          if (condition.type === "due-date" && condition.operator === "is-overdue") {
-            conditionMet = Boolean(task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Completed")
-          } else if (condition.type === "subtasks-completed" && condition.operator === "all-completed") {
-            conditionMet = task.subtasks.length > 0 && task.subtasks.every((subtask) => subtask.completed)
-          } else if (condition.type === "custom-field" && condition.field) {
-            const field = task.customFields.find((f) => f.name === condition.field)
-            if (field) {
-              if (condition.operator === "equals") {
-                conditionMet = field.value === condition.value
-              } else if (condition.operator === "not-equals") {
-                conditionMet = field.value !== condition.value
-              } else if (condition.operator === "contains") {
-                conditionMet = field.value.includes(condition.value || "")
-              }
-            }
-          }
-
-          // If condition is met and task is not already in the target column
-          if (conditionMet && action.type === "move-to-column") {
-            const targetColumn = columns.find((col) => col.id === action.targetColumnId)
-            if (targetColumn && task.status !== targetColumn.title) {
-              tasksToMove.push({
-                taskId: task.id,
-                sourceColumnId: column.id,
-                targetColumnId: action.targetColumnId,
-              })
-            }
-          }
-        })
-      })
-    })
-
-    // Apply the moves
-    if (tasksToMove.length > 0) {
-      const newColumns = [...columns]
-
-      tasksToMove.forEach(({ taskId, sourceColumnId, targetColumnId }) => {
-        const sourceColIndex = newColumns.findIndex((col) => col.id === sourceColumnId)
-        const targetColIndex = newColumns.findIndex((col) => col.id === targetColumnId)
-
-        if (sourceColIndex !== -1 && targetColIndex !== -1) {
-          const sourceCol = newColumns[sourceColIndex]
-          const taskIndex = sourceCol.tasks.findIndex((t) => t.id === taskId)
-
-          if (taskIndex !== -1) {
-            const task = { ...sourceCol.tasks[taskIndex], status: newColumns[targetColIndex].title }
-
-            // Remove from source
-            newColumns[sourceColIndex] = {
-              ...sourceCol,
-              tasks: sourceCol.tasks.filter((t) => t.id !== taskId),
-            }
-
-            // Add to target
-            newColumns[targetColIndex] = {
-              ...newColumns[targetColIndex],
-              tasks: [...newColumns[targetColIndex].tasks, task],
-            }
-
-            // Update selected task if it's being moved
-            if (selectedTask && selectedTask.id === taskId) {
-              setSelectedTask(task)
-            }
-
+    if (!columnsLoading && !initialized) {
+      setInitialized(true)
+      if (dbColumns.length === 0) {
+        // Create default columns
+        const defaultColumns = [
+          { title: "To Do", color: DEFAULT_COLORS[0], position: 0 },
+          { title: "In Progress", color: DEFAULT_COLORS[1], position: 1 },
+          { title: "Blocked", color: DEFAULT_COLORS[2], position: 2 },
+          { title: "Completed", color: DEFAULT_COLORS[3], position: 3 },
+        ]
+        
+        Promise.all(defaultColumns.map(col => api.createColumn(col)))
+          .then(() => {
             toast({
-              title: "Task moved automatically",
-              description: `"${task.title}" moved to ${newColumns[targetColIndex].title} by rule: ${rules.find((r) => r.action.targetColumnId === targetColumnId)?.name}`,
+              title: "Board initialized",
+              description: "Default columns have been created",
             })
-          }
-        }
-      })
-
-      setColumns(newColumns)
+          })
+      }
     }
-  }, [columns, rules, selectedTask, toast])
+  }, [columnsLoading, dbColumns.length, initialized, toast])
 
-  const handleDragEnd = (result: DropResult) => {
+  // Group tasks by column
+  const getTasksForColumn = useCallback((columnId: string) => {
+    return dbTasks
+      .filter(task => task.columnId === columnId)
+      .sort((a, b) => {
+        // Sort by position if available, otherwise by creation date
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      })
+  }, [dbTasks])
+
+  // Convert to column format expected by Column component
+  const columnsWithTasks = dbColumns.map(col => ({
+    ...col,
+    tasks: getTasksForColumn(col.id),
+  }))
+
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result
 
-    // If there's no destination or the item is dropped in the same place
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
       return
     }
 
-    // Find the source and destination columns
-    const sourceColumn = columns.find((col) => col.id === source.droppableId)
-    const destColumn = columns.find((col) => col.id === destination.droppableId)
+    const sourceColumn = dbColumns.find(col => col.id === source.droppableId)
+    const destColumn = dbColumns.find(col => col.id === destination.droppableId)
 
     if (!sourceColumn || !destColumn) return
 
-    // Create new arrays for the columns
-    const newColumns = [...columns]
-    const sourceColIndex = newColumns.findIndex((col) => col.id === source.droppableId)
-    const destColIndex = newColumns.findIndex((col) => col.id === destination.droppableId)
-
-    // Find the task being moved
-    const task = sourceColumn.tasks.find((t) => t.id === draggableId)
+    const task = dbTasks.find(t => t.id === draggableId)
     if (!task) return
 
-    // Remove the task from the source column
-    newColumns[sourceColIndex] = {
-      ...sourceColumn,
-      tasks: sourceColumn.tasks.filter((t) => t.id !== draggableId),
+    // Get all tasks in the destination column
+    const destTasks = getTasksForColumn(destination.droppableId)
+    
+    // Calculate new positions
+    const updates: { id: string; column_id: string; position: number }[] = []
+    
+    // Update the moved task
+    updates.push({
+      id: draggableId,
+      column_id: destination.droppableId,
+      position: destination.index,
+    })
+
+    // Update positions of other tasks in destination column
+    destTasks.forEach((t, idx) => {
+      if (t.id !== draggableId) {
+        const newPos = idx >= destination.index ? idx + 1 : idx
+        updates.push({
+          id: t.id,
+          column_id: destination.droppableId,
+          position: newPos,
+        })
+      }
+    })
+
+    // If moving between columns, update source column positions
+    if (source.droppableId !== destination.droppableId) {
+      const sourceTasks = getTasksForColumn(source.droppableId)
+      sourceTasks.forEach((t, idx) => {
+        if (t.id !== draggableId) {
+          updates.push({
+            id: t.id,
+            column_id: source.droppableId,
+            position: idx,
+          })
+        }
+      })
     }
 
-    // Add the task to the destination column with updated status
-    const updatedTask = { ...task, status: destColumn.title }
-    newColumns[destColIndex] = {
-      ...destColumn,
-      tasks: [
-        ...destColumn.tasks.slice(0, destination.index),
-        updatedTask,
-        ...destColumn.tasks.slice(destination.index),
-      ],
-    }
-
-    setColumns(newColumns)
+    await api.batchUpdateTasks(updates)
 
     // Update selected task if it's the one being moved
     if (selectedTask && selectedTask.id === draggableId) {
-      setSelectedTask(updatedTask)
+      setSelectedTask({ ...task, columnId: destination.droppableId })
     }
 
     toast({
@@ -430,31 +145,71 @@ export default function KanbanBoard() {
     })
   }
 
-  const addTask = (columnId: string, task: Task) => {
-    const newColumns = columns.map((column) => {
-      if (column.id === columnId) {
-        return {
-          ...column,
-          tasks: [...column.tasks, task],
-        }
-      }
-      return column
-    })
-    setColumns(newColumns)
+  const addTask = async (columnId: string, taskData: Partial<Task>) => {
+    const column = dbColumns.find(col => col.id === columnId)
+    const tasksInColumn = getTasksForColumn(columnId)
+    
+    const newTask = {
+      column_id: columnId,
+      title: taskData.title || "New Task",
+      description: taskData.description || null,
+      priority: taskData.priority || "medium",
+      labels: taskData.labels || [],
+      due_date: taskData.dueDate || null,
+      assignee: taskData.assignee || null,
+      position: tasksInColumn.length,
+      custom_field_values: taskData.customFieldValues || {},
+    }
+
+    await api.createTask(newTask)
+    
     toast({
       title: "Task created",
-      description: `"${task.title}" added to ${columns.find((col) => col.id === columnId)?.title}`,
+      description: `"${newTask.title}" added to ${column?.title}`,
     })
   }
 
-  const updateTask = (updatedTask: Task) => {
-    const newColumns = columns.map((column) => {
-      return {
-        ...column,
-        tasks: column.tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
-      }
+  const updateTask = async (updatedTask: Task) => {
+    await api.updateTask(updatedTask.id, {
+      column_id: updatedTask.columnId,
+      title: updatedTask.title,
+      description: updatedTask.description || null,
+      priority: updatedTask.priority,
+      labels: updatedTask.labels,
+      due_date: updatedTask.dueDate || null,
+      assignee: updatedTask.assignee || null,
+      custom_field_values: updatedTask.customFieldValues,
     })
-    setColumns(newColumns)
+
+    // Handle subtasks updates
+    const existingSubtasks = dbTasks.find(t => t.id === updatedTask.id)?.subtasks || []
+    
+    // Update or create subtasks
+    for (const subtask of updatedTask.subtasks) {
+      const existing = existingSubtasks.find(st => st.id === subtask.id)
+      if (existing) {
+        if (existing.title !== subtask.title || existing.completed !== subtask.completed) {
+          await api.updateSubtask(subtask.id, {
+            title: subtask.title,
+            completed: subtask.completed,
+          })
+        }
+      } else {
+        await api.createSubtask({
+          task_id: updatedTask.id,
+          title: subtask.title,
+          completed: subtask.completed,
+        })
+      }
+    }
+
+    // Delete removed subtasks
+    for (const existing of existingSubtasks) {
+      if (!updatedTask.subtasks.find(st => st.id === existing.id)) {
+        await api.deleteSubtask(existing.id)
+      }
+    }
+
     setSelectedTask(updatedTask)
     toast({
       title: "Task updated",
@@ -462,14 +217,8 @@ export default function KanbanBoard() {
     })
   }
 
-  const deleteTask = (taskId: string) => {
-    const newColumns = columns.map((column) => {
-      return {
-        ...column,
-        tasks: column.tasks.filter((task) => task.id !== taskId),
-      }
-    })
-    setColumns(newColumns)
+  const deleteTask = async (taskId: string) => {
+    await api.deleteTask(taskId)
     setSelectedTask(null)
     toast({
       title: "Task deleted",
@@ -477,28 +226,40 @@ export default function KanbanBoard() {
     })
   }
 
-  const duplicateTask = (task: Task, columnId?: string) => {
-    // Create a deep copy of the task with a new ID
-    const duplicatedTask: Task = {
-      ...JSON.parse(JSON.stringify(task)),
-      id: `task-${generateId()}`,
+  const duplicateTask = async (task: Task, columnId?: string) => {
+    const targetColumnId = columnId || task.columnId
+    const tasksInColumn = getTasksForColumn(targetColumnId)
+
+    const newTask = {
+      column_id: targetColumnId,
       title: `${task.title} (Copy)`,
-      createdAt: new Date().toISOString(),
+      description: task.description || null,
+      priority: task.priority,
+      labels: task.labels,
+      due_date: task.dueDate || null,
+      assignee: task.assignee || null,
+      position: tasksInColumn.length,
+      custom_field_values: task.customFieldValues,
     }
 
-    // If columnId is provided, add to that column, otherwise add to the same column as the original
-    const targetColumnId = columnId || columns.find((col) => col.tasks.some((t) => t.id === task.id))?.id
+    const created = await api.createTask(newTask)
 
-    if (targetColumnId) {
-      addTask(targetColumnId, duplicatedTask)
-      toast({
-        title: "Task duplicated",
-        description: `"${duplicatedTask.title}" created`,
+    // Duplicate subtasks
+    for (const subtask of task.subtasks) {
+      await api.createSubtask({
+        task_id: created.id,
+        title: subtask.title,
+        completed: false,
       })
     }
+
+    toast({
+      title: "Task duplicated",
+      description: `"${newTask.title}" created`,
+    })
   }
 
-  const addColumn = () => {
+  const addColumn = async () => {
     if (!newColumnTitle.trim()) {
       toast({
         title: "Error",
@@ -508,13 +269,14 @@ export default function KanbanBoard() {
       return
     }
 
-    const newColumn: ColumnType = {
-      id: `column-${generateId()}`,
+    const colorIndex = dbColumns.length % DEFAULT_COLORS.length
+    
+    await api.createColumn({
       title: newColumnTitle,
-      tasks: [],
-    }
+      color: DEFAULT_COLORS[colorIndex],
+      position: dbColumns.length,
+    })
 
-    setColumns([...columns, newColumn])
     setNewColumnTitle("")
     setIsAddingColumn(false)
     toast({
@@ -523,14 +285,16 @@ export default function KanbanBoard() {
     })
   }
 
-  const updateColumn = (columnId: string, updates: Partial<ColumnType>) => {
-    const newColumns = columns.map((column) => (column.id === columnId ? { ...column, ...updates } : column))
-    setColumns(newColumns)
+  const updateColumn = async (columnId: string, updates: Partial<ColumnType>) => {
+    await api.updateColumn(columnId, {
+      title: updates.title,
+      color: updates.color,
+      wip_limit: updates.wipLimit ?? null,
+    })
   }
 
-  const deleteColumn = (columnId: string) => {
-    // Check if column has tasks
-    const column = columns.find((col) => col.id === columnId)
+  const deleteColumn = async (columnId: string) => {
+    const column = columnsWithTasks.find(col => col.id === columnId)
     if (column && column.tasks.length > 0) {
       toast({
         title: "Cannot delete column",
@@ -540,39 +304,69 @@ export default function KanbanBoard() {
       return
     }
 
-    setColumns(columns.filter((col) => col.id !== columnId))
+    await api.deleteColumn(columnId)
     toast({
       title: "Column deleted",
       description: `"${column?.title}" column has been deleted`,
     })
   }
 
-  const addRule = (rule: Rule) => {
-    setRules([...rules, rule])
+  const addRule = async (rule: AutomationRule) => {
+    await api.createAutomationRule({
+      name: rule.name,
+      trigger_type: rule.trigger.type,
+      trigger_value: rule.trigger.value || null,
+      action_type: rule.action.type,
+      action_value: rule.action.value,
+      enabled: rule.enabled,
+    })
     toast({
       title: "Rule created",
       description: `"${rule.name}" has been added`,
     })
   }
 
-  const updateRule = (ruleId: string, updates: Partial<Rule>) => {
-    const newRules = rules.map((rule) => (rule.id === ruleId ? { ...rule, ...updates } : rule))
-    setRules(newRules)
+  const updateRule = async (ruleId: string, updates: Partial<AutomationRule>) => {
+    const updateData: Record<string, unknown> = {}
+    if (updates.name !== undefined) updateData.name = updates.name
+    if (updates.enabled !== undefined) updateData.enabled = updates.enabled
+    if (updates.trigger) {
+      updateData.trigger_type = updates.trigger.type
+      updateData.trigger_value = updates.trigger.value || null
+    }
+    if (updates.action) {
+      updateData.action_type = updates.action.type
+      updateData.action_value = updates.action.value
+    }
+    
+    await api.updateAutomationRule(ruleId, updateData)
   }
 
-  const deleteRule = (ruleId: string) => {
-    setRules(rules.filter((rule) => rule.id !== ruleId))
+  const deleteRule = async (ruleId: string) => {
+    await api.deleteAutomationRule(ruleId)
     toast({
       title: "Rule deleted",
       description: "The automation rule has been deleted",
     })
   }
 
+  // Loading state
+  if (columnsLoading || tasksLoading || rulesLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-gray-950">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <p className="text-gray-500 dark:text-gray-400">Loading your board...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Board content for the "board" tab
   const renderBoardContent = () => (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 h-full">
-        {columns.map((column) => (
+      <div className="flex gap-4 h-full overflow-x-auto pb-4">
+        {columnsWithTasks.map((column) => (
           <Column
             key={column.id}
             column={column}
@@ -596,6 +390,11 @@ export default function KanbanBoard() {
                 onChange={(e) => setNewColumnTitle(e.target.value)}
                 placeholder="Enter column title"
                 className="mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addColumn()
+                  if (e.key === "Escape") setIsAddingColumn(false)
+                }}
+                autoFocus
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={addColumn}>
@@ -629,8 +428,8 @@ export default function KanbanBoard() {
   const renderAutomationContent = () => (
     <div className="max-w-4xl mx-auto">
       <AutomationRules
-        rules={rules}
-        columns={columns}
+        rules={automationRules}
+        columns={dbColumns}
         onAddRule={addRule}
         onUpdateRule={updateRule}
         onDeleteRule={deleteRule}
@@ -669,7 +468,7 @@ export default function KanbanBoard() {
           onUpdate={updateTask}
           onDelete={deleteTask}
           onDuplicate={duplicateTask}
-          columns={columns}
+          columns={columnsWithTasks}
         />
       )}
     </div>

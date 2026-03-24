@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Task, Column as ColumnType } from "@/types/kanban"
-import { generateId } from "@/lib/utils"
 
 // Add predefined colors with dark mode variants
 const COLUMN_COLORS = [
@@ -25,9 +24,13 @@ const COLUMN_COLORS = [
   { name: "Cyan", value: "bg-cyan-50 dark:bg-cyan-900/30" },
 ]
 
+interface ColumnWithTasks extends ColumnType {
+  tasks: Task[]
+}
+
 interface ColumnProps {
-  column: ColumnType
-  onAddTask: (columnId: string, task: Task) => void
+  column: ColumnWithTasks
+  onAddTask: (columnId: string, task: Partial<Task>) => void
   onTaskClick: (task: Task) => void
   onDeleteColumn: () => void
   onUpdateColumn: (columnId: string, updates: Partial<ColumnType>) => void
@@ -49,18 +52,14 @@ export default function Column({
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return
 
-    const newTask: Task = {
-      id: `task-${generateId()}`,
+    onAddTask(column.id, {
       title: newTaskTitle,
-      description: newTaskDescription,
-      status: column.title,
-      dueDate: null,
+      description: newTaskDescription || undefined,
+      priority: "medium",
+      labels: [],
       subtasks: [],
-      customFields: [],
-      createdAt: new Date().toISOString(),
-    }
-
-    onAddTask(column.id, newTask)
+      customFieldValues: {},
+    })
     setNewTaskTitle("")
     setNewTaskDescription("")
     setIsAddingTask(false)
@@ -150,6 +149,11 @@ export default function Column({
                   onChange={(e) => setNewTaskTitle(e.target.value)}
                   placeholder="Enter task title"
                   className="mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) handleAddTask()
+                    if (e.key === "Escape") setIsAddingTask(false)
+                  }}
+                  autoFocus
                 />
                 <Label htmlFor="task-description" className="dark:text-gray-200">
                   Description (optional)
