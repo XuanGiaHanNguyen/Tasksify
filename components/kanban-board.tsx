@@ -507,7 +507,7 @@ export default function KanbanBoard() {
         <div className="flex justify-between items-center">
           <div className="flex flex-row gap-4 items-center">
             <img src='/logo.png' alt="Logo" style={{ width: "40px", height: "auto" }}/>
-            <h1 className="text-2xl font-bold text-[#fdf4ed]">Kanban Board</h1>
+            <h1 className="text-2xl font-bold text-[#fdf4ed]">Dashboard</h1>
           </div>
           
           <div className="flex flex-row gap-6 items-center">
